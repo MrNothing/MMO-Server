@@ -1,4 +1,6 @@
 MMO-Server
 ==========
 
-This should be used as a base for my mmo servers.
+Core system for my future mmo projects.
+Uses json protocol.
+
