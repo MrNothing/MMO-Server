@@ -1,4 +1,12 @@
 {
-	"test": "Success!!!",
-	"maxPlayers":9999
+	"serverIp" : "127.0.0.1",
+	"serverPort" : 6600,
+	"maxUsers" : 9999,
+	"enable client variables" : true,
+	"enable channel variables" : true,
+	"allow players to create rooms" : true,
+	"channels":[
+		{ "name" : "Public" , "maxUsers" : 100, "autoLeave" : false, "isTemp" : false, "isPublic" : true},
+		{ "name" : "Chat 1" , "maxUsers" : 50, "autoLeave" : false, "isTemp" : false, "isPublic" : true}
+	]
 }

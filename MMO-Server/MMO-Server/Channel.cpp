@@ -1,33 +1,31 @@
+#pragma once
+
 #include "stdafx.h"
 #include "Channel.h"
-//#include "Core.h"
 
 extern void destroyChannel(int id);
 extern map<int, Client*> clients;
 extern map<int, Channel*> channels;
 
-template<typename T1, typename T2>bool exists(map<T1, T2> m, T1 key)
-{
-	if ( m.find(key) == m.end() ) {
-	  return false;
-	} else {
-	  return true;
-	}
-}
-
 typedef std::map<int, int>::iterator ChannelIterator;
 typedef std::map<int, Client*>::iterator ClientIterator;
 
-Channel::Channel(int _id, string _name, int _maxClients, bool _autoLeave, bool _isTemp)
+Channel::Channel(int _id, string _name, int _maxClients, bool _autoLeave, bool _isTemp, bool _isPublic)
 {
 	id = _id;
 	name = _name;
 	maxClients = _maxClients;
 	leaveIfJoinOtherChannel = _autoLeave;
 	r_isTemp = _isTemp;
+	r_isPublic = _isPublic;
 }
 
 Channel::Channel(void)
+{
+
+}
+
+Channel::~Channel()
 {
 
 }
@@ -36,10 +34,10 @@ bool Channel::join(int clientId)
 {
 	if(clients[clientId]->getName().length()==0)
 	{
-		clients[clientId]->Send("err", "msg", "You must be logged in first!");
+		clients[clientId]->Send("err", "id", "10"); //You must be logged in first!
 		return false;
 	}
-
+	
 	if(!exists<int, Client*>(users, clientId))
 	{
 		//leave every channel if not persistent...
@@ -50,7 +48,18 @@ bool Channel::join(int clientId)
 				channels[iterator->second]->leave(clientId);
 		}
 
-		Send("join", "user", clients[clientId]->getName());
+		clientChannels[getId()] = getId();
+
+		clients[clientId]->setChannels(clientChannels);
+
+		map<string, string> clientInfos;
+		clientInfos["type"] = "join";
+		clientInfos["id"] =	to_string(clients[clientId]->getId());
+		clientInfos["name"] = clients[clientId]->getName();
+		clientInfos["chan_id"] = to_string(id);
+		clientInfos["chan"] = name;
+
+		Send(clientInfos);
 
 		users[clientId] = clients[clientId];
 		usersByName[clients[clientId]->getName()] = clients[clientId];
@@ -58,7 +67,7 @@ bool Channel::join(int clientId)
 	}
 	else
 	{
-		clients[clientId]->Send("err", "msg", "You have already joined this channel!");
+		clients[clientId]->Send("err", "id", "9"); //You have already joined this channel
 		return true;
 	}
 }
@@ -67,7 +76,21 @@ bool Channel::leave(int clientId)
 {
 	if(exists<int, Client*>(users, clientId))
 	{
-		Send("leave", "user", clients[clientId]->getName());
+		map<string, string> data;
+		data["type"] = "leave";
+		data["id"] = to_string(clients[clientId]->getId());
+		data["name"] = clients[clientId]->getName();
+		data["chan_id"] = to_string(id);
+		data["chan"] = name;
+
+		Send(data);
+
+		map<int, int> clientChannels = clients[clientId]->getChannels();
+		
+		if(exists<int, int>(clientChannels, getId()))
+			clientChannels.erase(getId());
+		
+		clients[clientId]->setChannels(clientChannels);
 
 		users.erase(clientId);
 		usersByName.erase(clients[clientId]->getName());
@@ -79,7 +102,7 @@ bool Channel::leave(int clientId)
 	}
 	else
 	{
-		clients[clientId]->Send("err", "msg", "You are not in this room!");
+		clients[clientId]->Send("err", "id", "8"); //You are not in this room!
 		return false;
 	}
 }
@@ -89,7 +112,16 @@ bool Channel::leave(int clientId, bool notifyAllClients)
 	if(exists<int, Client*>(users, clientId))
 	{
 		if(notifyAllClients)
-			Send("leave", "user", clients[clientId]->getName());
+		{
+			map<string, string> data;
+			data["type"] = "leave";
+			data["id"] = to_string(clients[clientId]->getId());
+			data["name"] = clients[clientId]->getName();
+			data["chan_id"] = to_string(id);
+			data["chan"] = name;
+
+			Send(data);
+		}
 
 		users.erase(clientId);
 		usersByName.erase(clients[clientId]->getName());
@@ -101,7 +133,7 @@ bool Channel::leave(int clientId, bool notifyAllClients)
 	}
 	else
 	{
-		clients[clientId]->Send("err", "msg", "You are not in this room!");
+		clients[clientId]->Send("err", "id", "8"); //You are not in this room!
 		return false;
 	}
 }
@@ -111,7 +143,17 @@ void Channel::kickAll()
 	for(ClientIterator iterator = users.begin(); iterator != users.end(); iterator++) 
 	{
 		leave(iterator->second->getId(), false);
-		iterator->second->Send("type", "leave");
+
+		map<string, string> data;
+		data["type"] = "leave";
+		data["id"] = to_string(iterator->second->getId());
+		data["name"] = iterator->second->getName();
+		data["chan_id"] = to_string(id);
+		data["chan"] = name;
+
+		Send(data);
+
+		iterator->second->Send("type", "leavek");
 	}
 }
 
@@ -133,6 +175,24 @@ void Channel::Send(string type, string key, string value)
 	}
 }
 
+void Channel::Send(string type, string key, int value)
+{
+	//leave every channel if not persistent...
+	for(ClientIterator iterator = users.begin(); iterator != users.end(); iterator++) 
+	{
+		clients[iterator->first]->Send(type, key, value);
+	}
+}
+
+void Channel::Send(string type, string key, float value)
+{
+	//leave every channel if not persistent...
+	for(ClientIterator iterator = users.begin(); iterator != users.end(); iterator++) 
+	{
+		clients[iterator->first]->Send(type, key, value);
+	}
+}
+
 void Channel::Send(string data)
 {
 	//leave every channel if not persistent...
@@ -140,4 +200,43 @@ void Channel::Send(string data)
 	{
 		clients[iterator->first]->Send(data);
 	}
+}
+
+void Channel::Send(map<string, string> data)
+{
+	//leave every channel if not persistent...
+	for(ClientIterator iterator = users.begin(); iterator != users.end(); iterator++) 
+	{
+		clients[iterator->first]->Send(data);
+	}
+}
+
+void Channel::Send(map<string, SerializableObject> data)
+{
+	//leave every channel if not persistent...
+	for(ClientIterator iterator = users.begin(); iterator != users.end(); iterator++) 
+	{
+		clients[iterator->first]->Send(data);
+	}
+}
+
+void Channel::SendUsers(int clientId)
+{
+	map<string, SerializableObject> data;
+
+	map<string, SerializableObject> usersInfos;
+	for(ClientIterator iterator = users.begin(); iterator != users.end(); iterator++) 
+	{
+		map<string, SerializableObject> userInfos;
+		userInfos["id"] = SerializableObject(iterator->second->getId());
+		userInfos["name"] = SerializableObject(iterator->second->getName());
+
+		//TODO: add more infos...
+		usersInfos[to_string(iterator->second->getId())] = userInfos;
+	}
+
+	data["type"] = SerializableObject("usersList");
+	data["users"] = SerializableObject(usersInfos);
+
+	clients[clientId]->Send(data);
 }

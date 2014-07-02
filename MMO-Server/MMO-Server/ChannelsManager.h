@@ -1,3 +1,5 @@
+#pragma once
+
 #include "stdafx.h"
 #include "Channel.h"
 
@@ -6,9 +8,9 @@ extern map<string, int> channelsByName;
 
 int channelIdCounter = 0;
 
-Channel* addChannel(string name, int maxPlayers, bool autoLeave, bool isTemp)
+Channel* addChannel(string name, int maxPlayers, bool autoLeave, bool isTemp, bool isPublic)
 {
-	Channel* newChannel = new Channel(channelIdCounter, name, maxPlayers, autoLeave, isTemp);
+	Channel* newChannel = new Channel(channelIdCounter, name, maxPlayers, autoLeave, isTemp, isPublic);
 	channels[newChannel->getId()] = newChannel;
 	channelsByName[newChannel->getName()] = newChannel->getId();
 	channelIdCounter++;
@@ -22,4 +24,6 @@ void destroyChannel(int id)
 	channel->kickAll();
 	channelsByName.erase(channel->getName());
 	channels.erase(channel->getId());
+
+	delete[] channel;
 }

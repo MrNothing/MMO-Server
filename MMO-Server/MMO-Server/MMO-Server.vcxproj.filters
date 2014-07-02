@@ -48,6 +48,12 @@
     <ClInclude Include="ChannelsManager.h">
       <Filter>Fichiers d%27en-tête\Managers</Filter>
     </ClInclude>
+    <ClInclude Include="ChatManager.h">
+      <Filter>Fichiers d%27en-tête\Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="utils.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

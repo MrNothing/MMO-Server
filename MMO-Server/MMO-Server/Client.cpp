@@ -1,17 +1,31 @@
+#pragma once
+
 #include "stdafx.h"
 #include "Client.h"
 #include "Channel.h"
 
+string serializableObjectToString(map<string, SerializableObject> data);
 extern bool _Send(char* message, SOCKET sd);
 extern map<int, Channel*> channels;
 
 typedef std::map<int, int>::iterator ChannelIterator;
+typedef std::map<string, string>::iterator stringMapIterator;
 
 Client::Client(SOCKET _client, sockaddr_in _adress)
 {
 	client = _client;
 	adress = _adress; 
 	name = "";
+}
+
+Client::Client(void)
+{
+
+}
+
+Client::~Client()
+{
+
 }
 
 void Client::Send(string data)
@@ -33,17 +47,44 @@ void Client::Send(string type, string key, string value)
 
 void Client::Send(string type, string key, int value)
 {
-	//_Send("{\"type\": \""+type.c_str()+"\", \""+key+"\": \""+value+"\"}", client);
+	string data = "{\"type\": \""+type+"\", \""+key+"\": \""+to_string(value)+"\"}";
+	_Send((char*)data.c_str(), client);
 }
 
 void Client::Send(string type, string key, float value)
 {
-	//_Send("{\"type\": \""+type.c_str()+"\", \""+key+"\": \""+value+"\"}", client);
+	string data = "{\"type\": \""+type+"\", \""+key+"\": \""+to_string(value)+"\"}";
+	_Send((char*)data.c_str(), client);
 }
 
 void Client::Send(char* data)
 {
 	_Send(data, client);
+}
+
+void Client::Send(map<string, string> data)
+{
+	string message="{";
+
+	int counter = 0;
+	for(stringMapIterator iterator = data.begin(); iterator != data.end(); iterator++) 
+	{
+		message+="\""+iterator->first+"\": \""+iterator->second+"\"";
+		
+		if(counter<data.size()-1)
+			message+=",";
+
+		counter++;
+	}
+	message+="}";
+
+	_Send((char*)message.c_str(), client);
+}
+
+void Client::Send(map<string, SerializableObject> data)
+{
+	string message=serializableObjectToString(data);
+	_Send((char*)message.c_str(), client);
 }
 
 void Client::LeaveAllChannels()
@@ -52,4 +93,31 @@ void Client::LeaveAllChannels()
 	{
 		channels[iterator->second]->leave(client);
 	}
+}
+
+string Client::serializableObjectToString(map<string, SerializableObject> data)
+{
+	string result = "{";
+
+	int counter = 0;
+	for(std::map<string, SerializableObject>::iterator iterator = data.begin(); iterator != data.end(); iterator++) 
+	{
+		if(iterator->second.childrens.size()==0)
+		{
+			result+="\""+iterator->first+"\": \""+iterator->second.value+"\"";
+		}
+		else
+		{
+			result+="\""+iterator->first+"\": "+serializableObjectToString(iterator->second.childrens);
+		}
+		
+		if(counter<data.size()-1)
+			result+=",";
+
+		counter++;
+	}
+
+	result += "}";
+
+	return result;
 }

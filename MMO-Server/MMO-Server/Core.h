@@ -15,6 +15,8 @@ bool EchoIncomingPackets(SOCKET sd);
 extern void OnClientMessage(SOCKET clientId, char* message);
 extern void OnClientDisconnected(SOCKET clientId, int reason);
 extern void OnClientConnected(SOCKET clientId, sockaddr_in adress);
+extern string serverIp;
+extern int serverPort;
 
 int start()
 {
@@ -22,12 +24,12 @@ int start()
     WSAData wsaData;
 	int nCode;
     if ((nCode = WSAStartup(MAKEWORD(1, 1), &wsaData)) != 0) {
-		cerr << "WSAStartup() returned error code " << nCode << "." <<
+		cerr << "error code " << nCode << "." <<
 				endl;
         return 255;
     }
 	
-	int retval = DoWinsock("127.0.0.1", 7700);
+	int retval = DoWinsock((const char*)serverIp.c_str(), serverPort);
 	
 	cout<<"Sever closed...";
 
@@ -43,8 +45,14 @@ int DoWinsock(const char* pcAddress, int nPort)
                 endl;
         return 3;
     }
-
-    cout << "Waiting for connections..." << endl;
+	
+	cout <<endl;
+	cout <<endl;
+	cout <<"***************************************"<<endl;
+	cout <<"*                                     *"<<endl;
+    cout <<"*   >MrNothing's MMO-Server is UP!<   *" << endl;
+	cout <<"*                                     *"<<endl;
+	cout <<"***************************************"<<endl;
     while (1) {
         AcceptConnections(ListeningSocket);
         cout << "Acceptor restarting..." << endl;
@@ -200,13 +208,4 @@ string readFileAsString(char* path)
 	}
 
 	return result;
-}
-
-template<typename T1, typename T2>bool exists(map<T1, T2> m, T1 key)
-{
-	if ( m.find(key) == m.end() ) {
-	  return false;
-	} else {
-	  return true;
-	}
 }
