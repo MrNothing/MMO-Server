@@ -17,3 +17,4 @@ Todo:
 - Secured Authentication.
 - Serverside MMO tools.
 - Advanced examples.
+- Complete Client/Server API Doc.
