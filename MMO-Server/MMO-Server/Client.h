@@ -30,9 +30,13 @@ public:
 	SOCKET getClient(){return client;}
 	map<int, int> getChannels(){return _channels;}
 	void setChannels(map<int, int> chans){_channels = chans;}
+	bool hasDisconnected(){return c_hasDisconnected;}
+	void setDisconnected(bool value){c_hasDisconnected = value;}
+
 private:
 	SOCKET client;
 	string name;
 	sockaddr_in adress;
 	map<int, int> _channels;
+	bool c_hasDisconnected;
 };

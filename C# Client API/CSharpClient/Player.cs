@@ -5,7 +5,7 @@ using System.Text;
 
 namespace CSharpClient
 {
-    class Player
+    public class Player
     {
         private string Id;
         private string Name;

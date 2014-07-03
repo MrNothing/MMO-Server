@@ -5,7 +5,7 @@ using System.Text;
 
 namespace CSharpClient
 {
-    class ErrorMessage
+    public class ErrorMessage
     {
         public string Id;
         public string Message="?";

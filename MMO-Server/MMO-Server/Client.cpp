@@ -16,6 +16,7 @@ Client::Client(SOCKET _client, sockaddr_in _adress)
 	client = _client;
 	adress = _adress; 
 	name = "";
+	c_hasDisconnected = false;
 }
 
 Client::Client(void)
@@ -30,40 +31,61 @@ Client::~Client()
 
 void Client::Send(string data)
 {
+	if(hasDisconnected())
+		return;
+
 	_Send((char*)data.c_str(), client);
 }
 
 void Client::Send(string key, string value)
 {
+	if(hasDisconnected())
+		return;
+
 	string data = "{\""+key+"\": \""+value+"\"}";
 	_Send((char*)data.c_str(), client);
 }
 
 void Client::Send(string type, string key, string value)
 {
+	if(hasDisconnected())
+		return;
+
 	string data = "{\"type\": \""+type+"\", \""+key+"\": \""+value+"\"}";
 	_Send((char*)data.c_str(), client);
 }
 
 void Client::Send(string type, string key, int value)
 {
+	if(hasDisconnected())
+		return;
+
 	string data = "{\"type\": \""+type+"\", \""+key+"\": \""+to_string(value)+"\"}";
 	_Send((char*)data.c_str(), client);
 }
 
 void Client::Send(string type, string key, float value)
 {
+	if(hasDisconnected())
+		return;
+
 	string data = "{\"type\": \""+type+"\", \""+key+"\": \""+to_string(value)+"\"}";
 	_Send((char*)data.c_str(), client);
 }
 
 void Client::Send(char* data)
 {
+	if(hasDisconnected())
+		return;
+
 	_Send(data, client);
 }
 
 void Client::Send(map<string, string> data)
 {
+	if(hasDisconnected())
+		return;
+
 	string message="{";
 
 	int counter = 0;

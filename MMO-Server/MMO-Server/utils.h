@@ -64,5 +64,6 @@ struct SerializableObject
 	SerializableObject(map<string, SerializableObject> _childrens)
 	{
 		childrens = _childrens;
+		value="";
 	}
 };

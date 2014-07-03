@@ -52,6 +52,9 @@ bool Channel::join(int clientId)
 
 		clients[clientId]->setChannels(clientChannels);
 
+		users[clientId] = clients[clientId];
+		usersByName[clients[clientId]->getName()] = clients[clientId];
+
 		map<string, string> clientInfos;
 		clientInfos["type"] = "join";
 		clientInfos["id"] =	to_string(clients[clientId]->getId());
@@ -61,8 +64,6 @@ bool Channel::join(int clientId)
 
 		Send(clientInfos);
 
-		users[clientId] = clients[clientId];
-		usersByName[clients[clientId]->getName()] = clients[clientId];
 		return true;
 	}
 	else
@@ -76,14 +77,17 @@ bool Channel::leave(int clientId)
 {
 	if(exists<int, Client*>(users, clientId))
 	{
-		map<string, string> data;
-		data["type"] = "leave";
-		data["id"] = to_string(clients[clientId]->getId());
-		data["name"] = clients[clientId]->getName();
-		data["chan_id"] = to_string(id);
-		data["chan"] = name;
+		if(!clients[clientId]->hasDisconnected())
+		{
+			map<string, string> data;
+			data["type"] = "leave";
+			data["id"] = to_string(clients[clientId]->getId());
+			data["name"] = clients[clientId]->getName();
+			data["chan_id"] = to_string(id);
+			data["chan"] = name;
 
-		Send(data);
+			Send(data);
+		}
 
 		map<int, int> clientChannels = clients[clientId]->getChannels();
 		

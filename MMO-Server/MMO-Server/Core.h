@@ -101,11 +101,12 @@ DWORD WINAPI EchoHandler(void* sd_)
 
     cout << "Shutting connection down..." << flush;
     if (ShutdownConnection(sd)) {
-        cout << "Connection is down." << endl;
+		cout << "Connection is down." << endl;
+		//OnClientDisconnected(sd, 4);
     }
     else {
-        cerr << endl << WSAGetLastErrorMessage(
-                "Connection shutdown failed") << endl;
+        cerr << endl << WSAGetLastErrorMessage("Connection shutdown failed") << endl;
+		//OnClientDisconnected(sd, 5);
         nRetval = 3;
     }
 
@@ -146,9 +147,9 @@ bool EchoIncomingPackets(SOCKET sd)
             
 			string parasableMessage = acReadBuffer;
 			//cout << "Received " << acReadBuffer << " from client." << sd << endl;
-			//cout << "Parsed " << parasableMessage.substr(0, parasableMessage.find("}")).c_str() << endl;
+			//cout << "Parsed " << parasableMessage.substr(0, parasableMessage.find("\n")+1).c_str() << endl;
         
-			OnClientMessage(sd, (char*)parasableMessage.substr(0, parasableMessage.find("¤")).c_str());
+			OnClientMessage(sd, (char*)parasableMessage.substr(0, parasableMessage.find('\n')+1).c_str());
         }
         else if (nReadBytes == SOCKET_ERROR) {
             return false;
@@ -171,7 +172,7 @@ bool _Send(char* message, SOCKET sd)
                 nReadBytes - nSentBytes, 0);
         if (nTemp > 0) 
 		{
-            //cout << "Sent " << nTemp << " bytes back to client." << endl;
+			//cout << "Sent " << message << " to client: " <<sd<< endl;
             nSentBytes += nTemp;
         }
         else if (nTemp == SOCKET_ERROR) 

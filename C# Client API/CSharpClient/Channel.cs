@@ -5,10 +5,12 @@ using System.Text;
 
 namespace CSharpClient
 {
-    class Channel
+    public class Channel
     {
         string Id;
         string Name;
+        int Users;
+        int MaxUsers;
         private Core core;
 
         public Channel(string id, string name, Core _core)
@@ -18,8 +20,19 @@ namespace CSharpClient
             core = _core;
         }
 
+        public Channel(string id, string name, int users, int maxUsers, Core _core)
+        {
+            Id = id;
+            Name = name;
+            Users = users;
+            MaxUsers = maxUsers;
+            core = _core;
+        }
+
         public string getName() { return Name; }
         public int getId() { return int.Parse(Id); }
+        public int getUsersCount() { return Users; }
+        public int getMaxUsers() { return MaxUsers; }
 
         public void requestAllUsers()
         {
@@ -36,6 +49,14 @@ namespace CSharpClient
             data.Add("action", "msg");
             data.Add("channel", Id);
             data.Add("msg", message);
+            core.Send(data);
+        }
+
+        public void Join()
+        {
+            Dictionary<string, Object> data = new Dictionary<string, object>();
+            data.Add("type", "join");
+            data.Add("id", Id);
             core.Send(data);
         }
     }

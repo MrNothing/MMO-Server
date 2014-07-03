@@ -115,7 +115,7 @@ void OnClientMessage(SOCKET clientId, char* message)
 	{
 		type = "N/A";
 	}
-	
+
 	if(!type.compare("ping"))
 	{
 		clients[clientId]->Send("ping");
@@ -128,26 +128,32 @@ void OnClientMessage(SOCKET clientId, char* message)
 			{
 				if(data["name"].IsString())
 				{
-					if(!exists<string, int>(loggedClientsByName, data["name"].GetString()))
+					string name = data["name"].GetString();
+					if(name.length()>0)
 					{
-						//todo: datable password check + md5 encryption
+						if(!exists<string, int>(loggedClientsByName, data["name"].GetString()))
+						{
+							//todo: database password check + md5 encryption
 
-						clients[clientId]->setName(data["name"].GetString());
-						loggedClientsByName[clients[clientId]->getName()] = clientId;
+							clients[clientId]->setName(data["name"].GetString());
+							loggedClientsByName[clients[clientId]->getName()] = clientId;
 
-						map<string, string> data;
-						data["type"] = "login";
-						data["id"] = to_string(clientId);
-						data["name"] = clients[clientId]->getName();
-						clients[clientId]->Send(data);
+							map<string, string> data;
+							data["type"] = "login";
+							data["id"] = to_string(clientId);
+							data["name"] = clients[clientId]->getName();
+							clients[clientId]->Send(data);
+						}
+						else
+						{
+							clients[clientId]->Send("err", "id", "1"); //this username is already taken!
+						}
 					}
 					else
-					{
-						clients[clientId]->Send("err", "id", "1"); //this username is already taken!
-					}
+						clients[clientId]->Send("err", "id", "0p"); //parsing error
 				}
 				else
-					clients[clientId]->Send("err", "id", "0p"); //parsing error
+					clients[clientId]->Send("err", "id", "11"); //username cannot be empty!
 			}
 			else
 			{
@@ -276,17 +282,20 @@ void OnClientMessage(SOCKET clientId, char* message)
 		if(clients[clientId]->getName().length()!=0)
 		{
 			map<string, SerializableObject> data;
-			data["type"] = "channels";
+			data["type"] = SerializableObject("channels");
 
 			map<string, SerializableObject> serializedChannels;
 			for(ChannelIterator iterator = publicChannels.begin(); iterator != publicChannels.end(); iterator++) 
 			{
-				map<string, SerializableObject> channelObj;
-				channelObj["id"] = SerializableObject(channels[iterator->second]->getId());
-				channelObj["name"] = SerializableObject(channels[iterator->second]->getName());
-				channelObj["maxUsers"] = SerializableObject(channels[iterator->second]->getMaxClients());
-				channelObj["users"] = SerializableObject(channels[iterator->second]->getClientsCount());
-				serializedChannels[to_string(channels[iterator->second]->getId())] = channelObj;
+				if(channels[iterator->second]->isPublic())
+				{
+					map<string, SerializableObject> channelObj;
+					channelObj["id"] = SerializableObject(channels[iterator->second]->getId());
+					channelObj["name"] = SerializableObject(channels[iterator->second]->getName());
+					channelObj["maxUsers"] = SerializableObject(channels[iterator->second]->getMaxClients());
+					channelObj["users"] = SerializableObject(channels[iterator->second]->getClientsCount());
+					serializedChannels[to_string(channels[iterator->second]->getId())] = channelObj;
+				}
 			}
 
 			data["channels"] = serializedChannels;
@@ -371,18 +380,23 @@ void OnClientDisconnected(SOCKET clientId, int reason)
 {
 	cout<<"Disconnected: "<<clientId<<" reason: "<<reason<<endl;
 	
-	//leave every channel...
-	map<int, int> clientChannels = clients[clientId]->getChannels();
-	for(ChannelIterator iterator = clientChannels.begin(); iterator != clientChannels.end(); iterator++) 
+	clients[clientId]->setDisconnected(true);
+
+	if(exists<int, Client*>(clients, clientId))
 	{
-		channels[iterator->second]->leave(clientId);
+		//leave every channel...
+		map<int, int> clientChannels = clients[clientId]->getChannels();
+		for(ChannelIterator iterator = clientChannels.begin(); iterator != clientChannels.end(); iterator++) 
+		{
+			channels[iterator->second]->leave(clientId);
+		}
+
+		if(clients[clientId]->getName().length()>0)
+			loggedClientsByName.erase(clients[clientId]->getName());
+
+		clients.erase(clientId);
+
+		delete[] clients[clientId];
 	}
-
-	if(clients[clientId]->getName().length()>0)
-		loggedClientsByName.erase(clients[clientId]->getName());
-
-	clients.erase(clientId);
-
-	delete[] clients[clientId];
 }
 
