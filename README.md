@@ -1,7 +1,7 @@
 MrNothing's Server
 ==========
 
-Free multi-platform Networking solution.
+Free multi-platform Networking solution aimed for Multiplayer Games and MMOs.
 
 Current features:
 
@@ -15,3 +15,5 @@ Todo:
 - Client/Channel Variables
 - Persistent Data (File based/Database)
 - Secured Authentication.
+- Serverside MMO tools.
+- Advanced examples.
