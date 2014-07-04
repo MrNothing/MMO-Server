@@ -53,7 +53,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		enableClientVariables = config["enable channel variables"].GetBool();
 
 	if(config.HasMember("serverIp"))
-		enableClientVariables = config["serverIp"].GetString();
+		serverIp = config["serverIp"].GetString();
 
 	if(config.HasMember("serverPort"))
 	{
@@ -282,7 +282,9 @@ void OnClientMessage(SOCKET clientId, char* message)
 		if(clients[clientId]->getName().length()!=0)
 		{
 			map<string, SerializableObject> data;
-			data["type"] = SerializableObject("channels");
+			data["type"] = SerializableObject(string("channels"));
+			
+			cout<<"type is: "<<data["type"].value<<endl;
 
 			map<string, SerializableObject> serializedChannels;
 			for(ChannelIterator iterator = publicChannels.begin(); iterator != publicChannels.end(); iterator++) 
@@ -298,7 +300,7 @@ void OnClientMessage(SOCKET clientId, char* message)
 				}
 			}
 
-			data["channels"] = serializedChannels;
+			data["channels"] = SerializableObject(serializedChannels);
 
 			clients[clientId]->Send(data);
 		}

@@ -1,5 +1,6 @@
 #pragma once
 #include "stdafx.h"
+#include "Object.h"
 
 using namespace std;
 
@@ -49,6 +50,11 @@ struct SerializableObject
 	SerializableObject(long _value)
 	{
 		value = to_string(_value);
+	}
+
+	SerializableObject(const char* _value)
+	{
+		value = _value;
 	}
 
 	SerializableObject(char _value)

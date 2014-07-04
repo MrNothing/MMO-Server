@@ -25,6 +25,9 @@
     <Filter Include="Fichiers d%27en-tête\Managers">
       <UniqueIdentifier>{5c2fb38c-03c7-4846-ad2f-80430adf7a7b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Fichiers d%27en-tête\Utils">
+      <UniqueIdentifier>{d5b4bc71-5ca6-41fe-80ac-5bf693ccd42f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -52,7 +55,10 @@
       <Filter>Fichiers d%27en-tête\Managers</Filter>
     </ClInclude>
     <ClInclude Include="utils.h">
-      <Filter>Fichiers d%27en-tête</Filter>
+      <Filter>Fichiers d%27en-tête\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Object.h">
+      <Filter>Fichiers d%27en-tête\Model</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -66,6 +72,9 @@
       <Filter>Fichiers sources\Model</Filter>
     </ClCompile>
     <ClCompile Include="Channel.cpp">
+      <Filter>Fichiers sources\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="Object.cpp">
       <Filter>Fichiers sources\Model</Filter>
     </ClCompile>
   </ItemGroup>

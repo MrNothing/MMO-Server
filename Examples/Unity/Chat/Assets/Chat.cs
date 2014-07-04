@@ -14,7 +14,9 @@ public class Chat : MonoBehaviour {
 
 		core.OnJoinedChannel += new Core.JoinedChannelEvent (OnJoinedChannel);
 		core.OnLeftChannel += new Core.LeftChannelEvent (OnLeftChannel);
-		
+
+		core.OnChannelListRecieved += new Core.ChannelListRecievedEvent (GotChannels);
+
 		core.OnChatMessageRecieved += new Core.ChatMessageRecievedEvent (OnChat);
 
 		core.OnErrorMessage += new Core.ErrorMessageEvent (OnError);
@@ -80,7 +82,6 @@ public class Chat : MonoBehaviour {
 		Debug.Log ("Logged in as " + player.getName ());
 		chatMessages += "Logged in as " + player.getName ()+"\n";
 
-		core.JoinChannel ("Public");
 		core.RequestPublicChannels ();
 	}
 
@@ -97,9 +98,12 @@ public class Chat : MonoBehaviour {
 
 	void GotChannels(Dictionary<string, Channel> channels)
 	{
+		Debug.Log ("Channels revieved!");
 		foreach (string s in channels.Keys) 
 		{
-			Debug.Log ("Channel found: "+channels[s].getName ());
+			//join the first channel in the list...
+			core.JoinChannel (channels[s].getName());
+			break;
 		}
 	}
 
@@ -111,7 +115,7 @@ public class Chat : MonoBehaviour {
 
 	void OnError(ErrorMessage error)
 	{
-		Debug.Log (error.Message);
+		Debug.Log (error.Id+" "+error.Message);
 		chatMessages += error.Message+"\n";
 	}
 
@@ -119,12 +123,6 @@ public class Chat : MonoBehaviour {
 	//If this is event is triggered, I made a mistake somewhere...
 	void OnParseError(Exception e, Hashtable data)
 	{
-		Debug.Log (e);
-		if (data != null) {
-			foreach (string s in data.Keys) {
-				Debug.Log ("'"+s+"'" + " -> " + "'"+data [s]+"'");
-			}
-		}
-		Debug.Log (core.data);
+		Debug.Log (core.location);
 	}
 }

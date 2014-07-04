@@ -8,6 +8,28 @@ namespace CSharpClient
 {
     public class JsonParser
     {
+        public static string PrintHashTable(Hashtable data)
+        {
+            return PrintHashTable(data, 0);
+        }
+        private static string PrintHashTable(Hashtable data, int depth)
+        {
+            string result = "";
+
+            foreach (object o in data.Keys)
+            {
+                for (int i = 0; i < depth; i++)
+                    result += "   ";
+
+                if (data[o].GetType().Equals(typeof(Hashtable)))
+                    result += "\n'" + o + "' -> '" + PrintHashTable((Hashtable)data[o], depth + 1) + "'";
+                else
+                    result += "\n'" + o + "' -> '" + data[o] + "'";
+            }
+
+            return result;
+        }
+
         public static string ListToJson(List<string> data)
         {
             string result = "";
@@ -72,7 +94,8 @@ namespace CSharpClient
                 {
                     if (level == 1)
                     {
-                        result.Add(lastKey, buffer);
+                        if (result[lastKey] == null)
+                            result.Add(lastKey, buffer);
 
                         isKey = true;
 
@@ -87,7 +110,9 @@ namespace CSharpClient
                     //we were in deeper levels, this was an object...
                     if (level == 1)
                     {
-                        result.Add(lastKey, JsonToHashTable(json.Substring(lastLvl1Index, i - lastLvl1Index + 1)));
+                        if (result[lastKey] == null)
+                            result.Add(lastKey, JsonToHashTable(json.Substring(lastLvl1Index, i - lastLvl1Index + 1)));
+                        
                         buffer = "";
                     }
 
@@ -156,8 +181,10 @@ namespace CSharpClient
                     if (level == 1)
                     {
                         isKey = true;
-
-                        result.Add(lastKey, buffer);
+                        
+                        if (result[lastKey] == null)
+                            result.Add(lastKey, buffer);
+                        
                         buffer = "";
                     }
 
@@ -169,7 +196,9 @@ namespace CSharpClient
                     //we were in deeper levels, this was an object...
                     if (level == 1)
                     {
-                        result.Add(lastKey, JsonToDictionary(json.Substring(lastLvl1Index, i - lastLvl1Index + 1)));
+                        if (result[lastKey] == null)
+                            result.Add(lastKey, JsonToDictionary(json.Substring(lastLvl1Index, i - lastLvl1Index + 1)));
+                        
                         buffer = "";
                     }
 

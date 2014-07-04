@@ -14,34 +14,55 @@ namespace CSharpClient
         private byte[] readBuffer = new byte[READ_BUFFER_SIZE];
 
         public delegate void DataEvent(Hashtable message);
+        
         public delegate void ConnectedEvent();
         public delegate void DisconnectedEvent(string reason);
+        
         public delegate void LoggedInEvent(Player player);
         public delegate void LoggedOutEvent(string reason);
+        
         public delegate void JoinedChannelEvent(Player player, Channel channel);
         public delegate void LeftChannelEvent(Player player, Channel channel);
-        public delegate void ErrorMessageEvent(ErrorMessage error);
+        
         public delegate void UserListRecievedEvent(Dictionary<string, Player> list);
         public delegate void ChannelListRecievedEvent(Dictionary<string, Channel> list);
+
         public delegate void ChatMessageRecievedEvent(string message, Player author, Channel room);
         public delegate void PrivateMessageRecievedEvent(string message, Player author);
+       
+        public delegate void PersistentDataRecievedEvent(string name, Object data);
+        public delegate void AllPersistentDataRecievedEvent(Object data);
+        public delegate void PulicDataRecievedEvent(string name, Object data, Player author);
+        public delegate void AllPulicDataRecievedEvent(Object data, Player author);
+
+        public delegate void ErrorMessageEvent(ErrorMessage error);
         public delegate void ParsingErrorEvent(Exception e, Hashtable lastData);
+        
         public DataEvent OnData;
+       
         public ConnectedEvent OnConnected;
         public DisconnectedEvent OnDisconnected;
+        
         public LoggedInEvent OnLoggedIn;
         public LoggedOutEvent OnLoggedOut;
+        
         public JoinedChannelEvent OnJoinedChannel;
         public LeftChannelEvent OnLeftChannel;
-        public ErrorMessageEvent OnErrorMessage;
+        
         public UserListRecievedEvent OnUserListRecieved;
         public ChannelListRecievedEvent OnChannelListRecieved;
+        
         public ChatMessageRecievedEvent OnChatMessageRecieved;
         public PrivateMessageRecievedEvent OnPrivateMessageRecieved;
 
-        /*
-            If this event is called, I made a mistake somewhere, you should always track this just in case and inform me if it is called...
-         */
+        //ServerSide Client data events.
+        public PersistentDataRecievedEvent OnPersistentDataRecieved;
+        public AllPersistentDataRecievedEvent OnAllPersistentDataRecieved;
+        public PulicDataRecievedEvent OnPulicDataRecieved;
+        public AllPulicDataRecievedEvent OnAllPulicDataRecieved;
+
+        public ErrorMessageEvent OnErrorMessage;
+        // If this event is called, I made a mistake somewhere, you should always track this just in case and inform me if it is called...
         public ParsingErrorEvent OnParsingError;
 
         TcpClient client;
@@ -99,6 +120,7 @@ namespace CSharpClient
 
         public string data;
         public Hashtable LastData = new Hashtable();
+        public string location="";
         
         private void DoRead(IAsyncResult ar)
         {
@@ -121,7 +143,9 @@ namespace CSharpClient
                 try
                 {
                     LastData.Clear();
+                    location = "Parse Fail";
                     LastData = JsonParser.JsonToHashTable(data);
+                    location = "Data Fail: ";
                     OnDataRecieved(LastData);
                 }
                 catch(Exception e)
@@ -158,7 +182,7 @@ namespace CSharpClient
 
         private void OnDataRecieved(Hashtable values)
         {
-           
+            location += values["type"];
             if(values["type"].Equals("err"))
             {
                 OnErrorMessage(new ErrorMessage(values["id"]+""));
@@ -263,21 +287,43 @@ namespace CSharpClient
             }
             else if (values["type"].Equals("channels"))
             {
-                Hashtable channels = (Hashtable)values["channels"];
-
-                Dictionary<string, Channel> parsedChannels = new Dictionary<string, Channel>();
-
-                foreach (string s in channels.Keys)
+                if (values["channels"] != null)
                 {
-                    Hashtable channel = (Hashtable)channels[s];
-                    Channel newChannel = new Channel(channel["id"]+"", channel["name"]+"", int.Parse(channel["users"]+""), int.Parse(channel["maxUsers"]+""), this);
-                    parsedChannels.Add(channel["id"] + "", newChannel);
+                    Hashtable channels = (Hashtable)values["channels"];
 
-                    if (channelsById[newChannel.getId().ToString()] == null)
-                        channelsById.Add(newChannel.getId().ToString(), newChannel);
+                    Dictionary<string, Channel> parsedChannels = new Dictionary<string, Channel>();
+
+                    foreach (string s in channels.Keys)
+                    {
+                        if (channels[s] != null)
+                        {
+                            Hashtable channel = (Hashtable)channels[s];
+                            Channel newChannel = new Channel(channel["id"] + "", channel["name"] + "", int.Parse(channel["users"] + ""), int.Parse(channel["maxUsers"] + ""), this);
+                            parsedChannels.Add(channel["id"] + "", newChannel);
+
+                            if (channelsById[channel["id"] + ""] == null)
+                                channelsById.Add(channel["id"] + "", newChannel);
+                        }
+                    }
+
+                    OnChannelListRecieved(parsedChannels);
                 }
-
-                OnChannelListRecieved(parsedChannels);
+            }
+            else if (values["type"].Equals("_p"))
+            {
+                OnPersistentDataRecieved(values["name"].ToString(), values["data"]);
+            }
+            else if (values["type"].Equals("_p_all"))
+            {
+                OnAllPersistentDataRecieved(values["data"]);
+            }
+            else if (values["type"].Equals("_d"))
+            {
+                OnPulicDataRecieved(values["n"].ToString(), values["d"], (Player)playersById[values["u"].ToString()]);
+            }
+            else if (values["type"].Equals("_d_all"))
+            {
+                OnAllPulicDataRecieved(values["d"], (Player)playersById[values["u"].ToString()]);
             }
             else
             {
@@ -310,6 +356,30 @@ namespace CSharpClient
             Dictionary<string, Object> data = new Dictionary<string, object>();
             data.Add("type", "join");
             data.Add("name", channelName);
+            Send(data);
+        }
+
+        public void SetPublicData(string name, Object _data)
+        {
+            Dictionary<string, Object> data = new Dictionary<string, object>();
+            data.Add("type", "_d");
+            data.Add("n", name);
+            data.Add("d", _data);
+            Send(data);
+        }
+
+        public void getAllPersistentData()
+        {
+            Dictionary<string, Object> data = new Dictionary<string, object>();
+            data.Add("type", "_p_all");
+            Send(data);
+        }
+
+        public void getPersistentData(string name)
+        {
+            Dictionary<string, Object> data = new Dictionary<string, object>();
+            data.Add("type", "_p");
+            data.Add("name", name); 
             Send(data);
         }
     } 
