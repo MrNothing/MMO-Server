@@ -18,3 +18,7 @@ Todo:
 - Serverside MMO tools.
 - Advanced examples.
 - Complete Client/Server API Doc.
+
+License:
+
+http://creativecommons.org/licenses/by-nc/4.0/
