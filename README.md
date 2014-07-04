@@ -22,3 +22,5 @@ Todo:
 License:
 
 http://creativecommons.org/licenses/by-nc/4.0/
+
+If you wish to use this program for commercial purposes, please contact me at boris1284@gmail.com
