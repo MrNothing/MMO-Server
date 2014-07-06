@@ -30,6 +30,9 @@ public:
 	void Disconnect();
 	void Disconnect(char* message);
 
+	map<string, SerializableObject> getPublicData(){return publicData;}
+	map<string, SerializableObject> getPersistentData(){return persistentData;}
+	
 	//string getAdress(){string res = inet_ntoa(adress.sin_addr)+""; return res;}
 	string getName(){return name;}
 	void setName(string _name){name = _name;}

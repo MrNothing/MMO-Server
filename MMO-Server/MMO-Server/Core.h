@@ -11,6 +11,7 @@ SOCKET SetUpListener(const char* pcAddress, int nPort);
 DWORD WINAPI EchoHandler(void* sd_);
 void AcceptConnections(SOCKET ListeningSocket);
 bool EchoIncomingPackets(SOCKET sd);
+void Log(string message);
 
 extern void OnClientMessage(SOCKET clientId, char* message);
 extern void OnClientDisconnected(SOCKET clientId, int reason);
@@ -31,14 +32,14 @@ int start()
 	
 	int retval = DoWinsock((const char*)serverIp.c_str(), serverPort);
 	
-	cout<<"Sever closed...";
+	Log("Sever closed...");
 
 	while(true);
 }
 
 int DoWinsock(const char* pcAddress, int nPort)
 {
-    cout << "Establishing the listener..." << endl;
+    Log("Binding the listener...");
     SOCKET ListeningSocket = SetUpListener(pcAddress, htons(nPort));
     if (ListeningSocket == INVALID_SOCKET) {
         cout << endl << WSAGetLastErrorMessage("establish listener") << 
@@ -46,16 +47,16 @@ int DoWinsock(const char* pcAddress, int nPort)
         return 3;
     }
 	
-	cout <<endl;
-	cout <<endl;
-	cout <<"***************************************"<<endl;
-	cout <<"*                                     *"<<endl;
-    cout <<"*   >MrNothing's MMO-Server is UP!<   *" << endl;
-	cout <<"*                                     *"<<endl;
-	cout <<"***************************************"<<endl;
+	Log("");
+	Log("");
+	Log("***************************************");
+	Log("*                                     *");
+    Log("*   >MrNothing's MMO-Server is UP!<   *");
+	Log("*                                     *");
+	Log("***************************************");
     while (1) {
         AcceptConnections(ListeningSocket);
-        cout << "Acceptor restarting..." << endl;
+        Log("Acceptor restarting...");
     }
 
 #if defined(_MSC_VER)
@@ -202,10 +203,70 @@ string readFileAsString(char* path)
 	{
 		while ( getline (myfile,line) )
 		{
-			cout<<line.c_str()<<endl;
+			//cout<<line.c_str()<<endl;
 			result += line;
 		}
 		myfile.close();
+	}
+	else
+	{
+		return "";
+	}
+
+	return result;
+}
+
+void writeString(string input, string file)
+{
+	std::ofstream out(file,  std::ios_base::app);
+    out << input << endl;
+    out.close();
+}
+
+void Log(string message)
+{
+	cout<<message<<endl;
+	tm* now = &tm();
+	time_t t = time(0);   // get time now
+
+	string fileName = to_string(now->tm_yday)+"_"+to_string(now->tm_mon+1)+"_"+to_string(now->tm_year)+".log";
+	writeString(message, "Logs/"+fileName);
+}
+
+SerializableObject parseRapidJson(rapidjson::Value& data)
+{
+	SerializableObject result;
+
+	if(data.IsObject())
+	{
+		map<string, SerializableObject> list;
+
+		for(rapidjson::Value::ConstMemberIterator it=data.MemberBegin(); it != data.MemberEnd(); it++) {
+			list[it->name.GetString()] = parseRapidJson(data[it->name.GetString()]);
+		}
+
+		result = SerializableObject(list);
+	}
+	else if(data.IsString())
+	{
+		result = SerializableObject(data.GetString());
+	}
+	else if(data.IsInt())
+	{
+		result = SerializableObject(data.GetInt());
+	}
+	else if(data.IsDouble())
+	{
+		result = SerializableObject(data.GetDouble());
+	}
+	else if(data.IsBool())
+	{
+		result = SerializableObject(data.GetBool());
+	}
+	else
+	{
+		//type not listed...
+		result = SerializableObject();
 	}
 
 	return result;

@@ -4,15 +4,6 @@
 
 using namespace std;
 
-template<typename T1, typename T2>bool exists(map<T1, T2> m, T1 key)
-{
-	if ( m.find(key) == m.end() ) {
-	  return false;
-	} else {
-	  return true;
-	}
-}
-
 struct SerializableObject
 {
 	string value;
@@ -38,6 +29,11 @@ struct SerializableObject
 	}
 
 	SerializableObject(float _value)
+	{
+		value = to_string(_value);
+	}
+
+	SerializableObject(double _value)
 	{
 		value = to_string(_value);
 	}
@@ -73,3 +69,12 @@ struct SerializableObject
 		value="";
 	}
 };
+
+template<typename T1, typename T2>bool exists(map<T1, T2> m, T1 key)
+{
+	if ( m.find(key) == m.end() ) {
+	  return false;
+	} else {
+	  return true;
+	}
+}

@@ -5,10 +5,6 @@
 #include "stdafx.h"
 #include "utils.h"
 
-#include "rapidjson/document.h"		// rapidjson's DOM-style API
-#include "rapidjson/prettywriter.h"	// for stringify JSON
-#include "rapidjson/filestream.h"	// wrapper of C stream for prettywriter as output
-
 #include "ChannelsManager.h"
 #include "ChatManager.h"
 
@@ -28,12 +24,12 @@ map<int, int> publicChannels;
 int maxClients = 9999;
 string serverIp = "127.0.0.1";
 int serverPort = 6600;
-bool enableClientVariables = true;
-bool enableChannelVariables = true;
+bool unsecurePublicData = true;
+bool unsecurePersistentData = true;
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-	printf("Loading config file...\n");
+	Log("Loading config file...");
 	
 	string configJson = readFileAsString("config.json");
 	
@@ -41,16 +37,16 @@ int _tmain(int argc, _TCHAR* argv[])
 	
 	if (config.Parse<0>(configJson.c_str()).HasParseError())
 	{
-		cout<<"Could not parse config file..."<<endl;
+		Log("Could not parse config file...");
 		while(true);
 		return 1;
 	}
 	
-	if(config.HasMember("enable client variables"))
-		enableClientVariables = config["enable client variables"].GetBool();
+	if(config.HasMember("enable client side public data"))
+		unsecurePublicData = config["enable client side public data"].GetBool();
 
-	if(config.HasMember("enable channel variables"))
-		enableClientVariables = config["enable channel variables"].GetBool();
+	if(config.HasMember("enable client side persistent data"))
+		unsecurePersistentData = config["enable client side public data"].GetBool();
 
 	if(config.HasMember("serverIp"))
 		serverIp = config["serverIp"].GetString();
@@ -60,7 +56,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		if(config["serverPort"].IsInt())
 			serverPort = config["serverPort"].GetInt();
 		else
-			cout<<"ServerPort was not in Int format, please specify a number. Default value will be used."<<endl;
+			Log("ServerPort was not in Int format, please specify a number. Default value will be used.");
 	}
 
 	if(config.HasMember("maxUsers"))
@@ -68,7 +64,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		if(config["maxUsers"].IsInt())
 			maxClients = config["maxUsers"].GetInt();
 		else
-			cout<<"maxUsers was not in Int format, please specify a number. Default value will be used."<<endl;
+			Log("maxUsers was not in Int format, please specify a number. Default value will be used.");
 	}
 
 	if(config.HasMember("channels"))
@@ -80,12 +76,13 @@ int _tmain(int argc, _TCHAR* argv[])
 			for (rapidjson::SizeType i = 0; i < channels.Size(); i++)
 			{
 				rapidjson::Value& channel = channels[i];
+				Log(string("Channel found: ")+channel["name"].GetString());
 				addChannel(channel["name"].GetString(), channel["maxUsers"].GetInt(), channel["autoLeave"].GetBool(), channel["isTemp"].GetBool(), channel["isPublic"].GetBool());
 			}
 		}
 	}
 
-	cout<<"found "<<channels.size()<<" channels"<<endl;
+	Log("found "+to_string(channels.size())+" channels");
 	
 	start();
 }
@@ -364,6 +361,42 @@ void OnClientMessage(SOCKET clientId, char* message)
 			clients[clientId]->Send("err", "id", "0c"); //no chat action
 		}
 	}
+	else if(!type.compare("_d") && unsecurePublicData) //set public data
+	{
+		if(data.HasMember("n") && data.HasMember("d"))
+		{
+			if(data["n"].IsString())
+			{
+				SerializableObject parsedData = parseRapidJson(data["d"]);
+				clients[clientId]->SetPublicData(data["n"].GetString(), parsedData);
+			}
+		}
+	}
+	else if(!type.compare("_p") && unsecurePersistentData) //set persistent data
+	{
+		if(data.HasMember("n") && data.HasMember("d"))
+		{
+			if(data["n"].IsString())
+			{
+				SerializableObject parsedData = parseRapidJson(data["d"]);
+				clients[clientId]->SetPersistentData(data["n"].GetString(), parsedData);
+			}
+		}
+	}
+	else if(!type.compare("_gp")) //get persistent data
+	{
+		if(data.HasMember("name"))
+		{
+			if(data["name"].IsString())
+			{
+				clients[clientId]->SendPersistentData(data["name"].GetString());
+			}
+		}
+	}
+	else if(!type.compare("_p_all")) //get all persistent data
+	{
+		clients[clientId]->SendAllPersistentData();
+	}
 	else
 	{
 		//no such type
@@ -373,14 +406,14 @@ void OnClientMessage(SOCKET clientId, char* message)
 
 void OnClientConnected(SOCKET clientId, sockaddr_in adress)
 {
-	cout<<"Connected: "<<clientId<<endl;
+	Log("Connected: "+to_string(clientId));
 	Client* client = new Client(clientId, adress);
 	clients[clientId] = client;
 }
 
 void OnClientDisconnected(SOCKET clientId, int reason)
 {
-	cout<<"Disconnected: "<<clientId<<" reason: "<<reason<<endl;
+	Log("Disconnected: "+to_string(clientId)+" reason: "+to_string(reason));
 	
 	clients[clientId]->setDisconnected(true);
 
@@ -394,8 +427,12 @@ void OnClientDisconnected(SOCKET clientId, int reason)
 		}
 
 		if(clients[clientId]->getName().length()>0)
-			loggedClientsByName.erase(clients[clientId]->getName());
+		{
+			//save persistent data...
+			writeString(clients[clientId]->serializableObjectToString(clients[clientId]->getPersistentData()), "Persistent/"+clients[clientId]->getName()+"_data.json");
 
+			loggedClientsByName.erase(clients[clientId]->getName());
+		}
 		clients.erase(clientId);
 
 		delete[] clients[clientId];

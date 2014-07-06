@@ -47,7 +47,7 @@ namespace CSharpClient
             Dictionary<string, Object> data = new Dictionary<string, object>();
             data.Add("type", "chat");
             data.Add("action", "msg");
-            data.Add("channel", Id);
+            data.Add("channel", Name);
             data.Add("msg", message);
             core.Send(data);
         }
@@ -56,7 +56,7 @@ namespace CSharpClient
         {
             Dictionary<string, Object> data = new Dictionary<string, object>();
             data.Add("type", "join");
-            data.Add("id", Id);
+            data.Add("name", Name);
             core.Send(data);
         }
     }

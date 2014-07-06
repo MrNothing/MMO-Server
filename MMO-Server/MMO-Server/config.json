@@ -2,8 +2,8 @@
 	"serverIp" : "127.0.0.1",
 	"serverPort" : 6600,
 	"maxUsers" : 9999,
-	"enable client variables" : true,
-	"enable channel variables" : true,
+	"enable client side public data" : true,
+	"enable client side persistent data" : true,
 	"allow players to create rooms" : true,
 	"channels":[
 		{ "name" : "Public" , "maxUsers" : 100, "autoLeave" : false, "isTemp" : false, "isPublic" : true},

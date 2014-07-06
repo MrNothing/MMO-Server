@@ -137,7 +137,7 @@ namespace CSharpClient
                 }
                 // Convert the byte array the message was saved into, minus two for the
                 // Chr(13) and Chr(10)
-                data = Encoding.ASCII.GetString(readBuffer, 0, BytesRead);
+                data = Encoding.UTF8.GetString(readBuffer, 0, BytesRead);
                 
                 //Convert data to Json
                 try
@@ -368,6 +368,15 @@ namespace CSharpClient
             Send(data);
         }
 
+        public void SetPersistentData(string name, Object _data)
+        {
+            Dictionary<string, Object> data = new Dictionary<string, object>();
+            data.Add("type", "_p");
+            data.Add("n", name);
+            data.Add("d", _data);
+            Send(data);
+        }
+
         public void getAllPersistentData()
         {
             Dictionary<string, Object> data = new Dictionary<string, object>();
@@ -378,7 +387,7 @@ namespace CSharpClient
         public void getPersistentData(string name)
         {
             Dictionary<string, Object> data = new Dictionary<string, object>();
-            data.Add("type", "_p");
+            data.Add("type", "_gp");
             data.Add("name", name); 
             Send(data);
         }
