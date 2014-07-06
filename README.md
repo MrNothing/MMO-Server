@@ -9,10 +9,10 @@ Current features:
 - C++ Winsock server
 - Unity/.Net examples
 - Json protocol
+- Public custom client data
 
 Todo:
 
-- Client/Channel Variables
 - Persistent Data (File based/Database)
 - Secured Authentication.
 - Serverside MMO tools.
@@ -23,4 +23,3 @@ License:
 
 http://creativecommons.org/licenses/by-nc/4.0/
 
-If you wish to use this program for commercial purposes, please contact me at boris1284@gmail.com
