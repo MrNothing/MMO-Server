@@ -28,6 +28,9 @@
     <Filter Include="Fichiers d%27en-tête\Utils">
       <UniqueIdentifier>{d5b4bc71-5ca6-41fe-80ac-5bf693ccd42f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Fichiers sources\Extension">
+      <UniqueIdentifier>{f0b32843-49b9-4cfd-81ca-b04ebd3103d9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -60,6 +63,21 @@
     <ClInclude Include="Object.h">
       <Filter>Fichiers d%27en-tête\Model</Filter>
     </ClInclude>
+    <ClInclude Include="Entity.h">
+      <Filter>Fichiers d%27en-tête\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector3.h">
+      <Filter>Fichiers d%27en-tête\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector2.h">
+      <Filter>Fichiers d%27en-tête\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector2i.h">
+      <Filter>Fichiers d%27en-tête\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector3i.h">
+      <Filter>Fichiers d%27en-tête\Model</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -75,6 +93,27 @@
       <Filter>Fichiers sources\Model</Filter>
     </ClCompile>
     <ClCompile Include="Object.cpp">
+      <Filter>Fichiers sources\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="Entity.cpp">
+      <Filter>Fichiers sources\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="Vector2.cpp">
+      <Filter>Fichiers sources\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="Vector3.cpp">
+      <Filter>Fichiers sources\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="ExtensionBase.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClCompile>
+    <ClCompile Include="Extension.cpp">
+      <Filter>Fichiers sources\Extension</Filter>
+    </ClCompile>
+    <ClCompile Include="Vector2i.cpp">
+      <Filter>Fichiers sources\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="Vector3i.cpp">
       <Filter>Fichiers sources\Model</Filter>
     </ClCompile>
   </ItemGroup>

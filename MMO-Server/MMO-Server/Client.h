@@ -2,6 +2,7 @@
 
 #include "stdafx.h"
 #include "utils.h"
+#include "Entity.h"
 
 using namespace std;
 
@@ -21,6 +22,7 @@ public:
 	void Send(string type, string key, int value);
 	void Send(string type, string key, float value);
 	void Send(char* data);
+	void Send(SerializableObject data);
 	void SendPersistentData(string name);
 	void SendAllPersistentData();
 	void SendAllPublicData();
@@ -58,4 +60,7 @@ private:
 
 	//Persistent data is data that will remain even if the client disconnects or the server is closed. The data is stored in the "Persistent" folder and is associated to the client's username.
 	map<string, SerializableObject> persistentData;
+
+	//the entity incarnated by this player.
+	Entity avatar;
 };

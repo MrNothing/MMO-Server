@@ -17,9 +17,14 @@
 #include <fstream>
 #include <list>
 #include <map>
+#include <vector>
 #include <iterator>
 
 #include <ctime>
+
+#include <chrono>
+#include <thread>
+#include <functional>
 
 #include "rapidjson/document.h"		// rapidjson's DOM-style API
 #include "rapidjson/prettywriter.h"	// for stringify JSON

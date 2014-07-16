@@ -122,12 +122,20 @@ void Client::Send(map<string, SerializableObject> data)
 	_Send((char*)message.c_str(), client);
 }
 
+void Client::Send(SerializableObject data)
+{
+	map<string, SerializableObject> stuffToSend;
+	stuffToSend["type"] = SerializableObject(string("_cu"));
+	stuffToSend["data"] = data;
+	Send(stuffToSend);
+}
+
 void Client::SendPersistentData(string name)
 {
 	map<string, SerializableObject> data;
 	data["type"] = SerializableObject(string("_p"));
 	data["name"] = SerializableObject(name);
-	data["data"] = SerializableObject(persistentData["name"]);
+	data["data"] = persistentData["name"];
 	Send(data);
 }
 
@@ -147,7 +155,7 @@ void Client::SetPublicData(string name, SerializableObject _data)
 	data["type"] = SerializableObject(string("_d"));
 	data["u"] = SerializableObject(getId());
 	data["n"] = SerializableObject(name);
-	data["d"] = SerializableObject(_data);
+	data["d"] = _data;
 	BroadCast(data);
 }
 
@@ -200,7 +208,7 @@ string Client::serializableObjectToString(map<string, SerializableObject> data)
 	return result;
 }
 
-template<typename T>string Client::ObjectToString(Object<T> data)
+/*template<typename T>string Client::ObjectToString(Object<T> data)
 {
 	string result = "{";
 
@@ -233,4 +241,4 @@ template<typename T>string Client::ObjectToString(Object<T> data)
 
 		return result;
 	}
-}
+}*/

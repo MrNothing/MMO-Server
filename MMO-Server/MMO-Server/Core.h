@@ -16,6 +16,7 @@ void Log(string message);
 extern void OnClientMessage(SOCKET clientId, char* message);
 extern void OnClientDisconnected(SOCKET clientId, int reason);
 extern void OnClientConnected(SOCKET clientId, sockaddr_in adress);
+extern void Start();
 extern string serverIp;
 extern int serverPort;
 
@@ -54,6 +55,9 @@ int DoWinsock(const char* pcAddress, int nPort)
     Log("*   >MrNothing's MMO-Server is UP!<   *");
 	Log("*                                     *");
 	Log("***************************************");
+
+	Start();
+
     while (1) {
         AcceptConnections(ListeningSocket);
         Log("Acceptor restarting...");
@@ -270,4 +274,15 @@ SerializableObject parseRapidJson(rapidjson::Value& data)
 	}
 
 	return result;
+}
+
+void timer_start(std::function<void(void)> func, unsigned int interval)
+{
+    std::thread([func, interval]() {
+        while (true)
+        {
+            func();
+            std::this_thread::sleep_for(std::chrono::milliseconds(interval));
+        }
+    }).detach();
 }

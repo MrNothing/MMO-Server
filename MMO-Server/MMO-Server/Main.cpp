@@ -12,7 +12,10 @@
 #include "Client.h"
 #include "Channel.h"
 
+#include "ExtensionBase.h"
+
 typedef std::map<int, int>::iterator ChannelIterator;
+typedef std::map<int, Channel*>::iterator ChannelMapIterator;
 
 map<int, Client*> clients;
 map<string, int> loggedClientsByName;
@@ -27,8 +30,13 @@ int serverPort = 6600;
 bool unsecurePublicData = true;
 bool unsecurePersistentData = true;
 
+unsigned int updateInterval=100;
+
+void run();
+
 int _tmain(int argc, _TCHAR* argv[])
 {
+
 	Log("Loading config file...");
 	
 	string configJson = readFileAsString("config.json");
@@ -83,8 +91,20 @@ int _tmain(int argc, _TCHAR* argv[])
 	}
 
 	Log("found "+to_string(channels.size())+" channels");
+
+	timer_start(run, updateInterval);
 	
 	start();
+}
+
+void run()
+{
+	for(ChannelMapIterator iterator = channels.begin(); iterator != channels.end(); iterator++) 
+	{
+		iterator->second->run();
+	}
+
+	Update();
 }
 
 void OnClientMessage(SOCKET clientId, char* message)
@@ -140,6 +160,8 @@ void OnClientMessage(SOCKET clientId, char* message)
 							data["id"] = to_string(clientId);
 							data["name"] = clients[clientId]->getName();
 							clients[clientId]->Send(data);
+
+							onClientLogin(*clients[clientId]);
 						}
 						else
 						{
@@ -173,8 +195,9 @@ void OnClientMessage(SOCKET clientId, char* message)
 				channels[iterator->second]->leave(clientId);
 			}
 
-			if(clients[clientId]->getName().length()>0)
-				loggedClientsByName.erase(clients[clientId]->getName());
+			loggedClientsByName.erase(clients[clientId]->getName());
+
+			onClientLogout(*clients[clientId]);
 
 			clients[clientId]->Send("logout", "msg", "userTriggered");
 		}
@@ -397,6 +420,14 @@ void OnClientMessage(SOCKET clientId, char* message)
 	{
 		clients[clientId]->SendAllPersistentData();
 	}
+	else if(!type.compare("_cu")) //custom message
+	{
+		if(data.HasMember("d"))
+		{
+			SerializableObject parsedData = parseRapidJson(data["d"]);
+			onCustomMessageRecieved(*clients[clientId], parsedData);
+		}
+	}
 	else
 	{
 		//no such type
@@ -432,6 +463,7 @@ void OnClientDisconnected(SOCKET clientId, int reason)
 			writeString(clients[clientId]->serializableObjectToString(clients[clientId]->getPersistentData()), "Persistent/"+clients[clientId]->getName()+"_data.json");
 
 			loggedClientsByName.erase(clients[clientId]->getName());
+			onClientDisconnected(*clients[clientId]);
 		}
 		clients.erase(clientId);
 
@@ -439,3 +471,15 @@ void OnClientDisconnected(SOCKET clientId, int reason)
 	}
 }
 
+bool GetChannel(int id, Channel* channel)
+{
+	if(exists<int, Channel*>(channels, id))
+	{
+		channel = channels[id];
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}

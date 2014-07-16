@@ -9,6 +9,7 @@ extern map<int, Channel*> channels;
 
 typedef std::map<int, int>::iterator ChannelIterator;
 typedef std::map<int, Client*>::iterator ClientIterator;
+typedef std::map<int, Entity*>::iterator EntityIterator;
 
 Channel::Channel(int _id, string _name, int _maxClients, bool _autoLeave, bool _isTemp, bool _isPublic)
 {
@@ -18,6 +19,11 @@ Channel::Channel(int _id, string _name, int _maxClients, bool _autoLeave, bool _
 	leaveIfJoinOtherChannel = _autoLeave;
 	r_isTemp = _isTemp;
 	r_isPublic = _isPublic;
+
+	viewRange = Vector3i(1, 1, 1);
+	indexBlocSize = 20;
+
+	optimizedSynchronization = true;
 }
 
 Channel::Channel(void)
@@ -28,6 +34,14 @@ Channel::Channel(void)
 Channel::~Channel()
 {
 
+}
+
+void Channel::run()
+{
+	for(EntityIterator iterator = entities.begin(); iterator != entities.end(); iterator++) 
+	{
+		iterator->second->run();
+	}
 }
 
 bool Channel::join(int clientId)
@@ -216,6 +230,15 @@ void Channel::Send(map<string, string> data)
 }
 
 void Channel::Send(map<string, SerializableObject> data)
+{
+	//leave every channel if not persistent...
+	for(ClientIterator iterator = users.begin(); iterator != users.end(); iterator++) 
+	{
+		clients[iterator->first]->Send(data);
+	}
+}
+
+void Channel::Send(SerializableObject data)
 {
 	//leave every channel if not persistent...
 	for(ClientIterator iterator = users.begin(); iterator != users.end(); iterator++) 

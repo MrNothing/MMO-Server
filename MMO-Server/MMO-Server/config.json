@@ -5,8 +5,15 @@
 	"enable client side public data" : true,
 	"enable client side persistent data" : true,
 	"allow players to create rooms" : true,
+	"interval between updates" : 100,
 	"channels":[
 		{ "name" : "Public" , "maxUsers" : 100, "autoLeave" : false, "isTemp" : false, "isPublic" : true},
-		{ "name" : "Chat 1" , "maxUsers" : 50, "autoLeave" : false, "isTemp" : false, "isPublic" : true}
+		{ "name" : "Chat 1" , "maxUsers" : 50, "autoLeave" : false, "isTemp" : false, "isPublic" : true},
+		{"name" : "Game 1" , "maxUsers" : 50, "autoLeave" : false, "isTemp" : false, "isPublic" : true, 
+			"npcs" : [
+				{"id":0, "name":"Guard 1", "position":{"x":0, "y":0, "z":0}},
+				{"id":1, "name":"Guard 2", "position":{"x":10, "y":0, "z":0}}
+			]
+		}
 	]
 }
