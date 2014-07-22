@@ -46,7 +46,7 @@ public:
 	map<string, map<int, int>*> getSpacialClientIndex(){return spacialClientIndex;}
 	Vector3i getViewRange(){return viewRange;}
 
-	void addEntity(string name, Vector3 position, float moveSpeed);
+	Entity* addEntity(string name, Vector3 position, float moveSpeed);
 
 private:
 	int id;
@@ -82,4 +82,5 @@ private:
 	//when this is true, the entities in this channel will send their informations only to players that have an entity in their range.
 	bool optimizedSynchronization;
 	
+	int entityCounter;
 };

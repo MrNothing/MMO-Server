@@ -85,7 +85,23 @@ int _tmain(int argc, _TCHAR* argv[])
 			{
 				rapidjson::Value& channel = channels[i];
 				Log(string("Channel found: ")+channel["name"].GetString());
-				addChannel(channel["name"].GetString(), channel["maxUsers"].GetInt(), channel["autoLeave"].GetBool(), channel["isTemp"].GetBool(), channel["isPublic"].GetBool());
+				Channel* myChannel = addChannel(channel["name"].GetString(), channel["maxUsers"].GetInt(), channel["autoLeave"].GetBool(), channel["isTemp"].GetBool(), channel["isPublic"].GetBool());
+			
+				rapidjson::Value& entities = channel["npcs"];
+
+				if(entities.IsArray())
+				{
+					Log(to_string(entities.Size())+string(" entities found."));
+
+					for (rapidjson::SizeType i = 0; i < entities.Size(); i++)
+					{
+						rapidjson::Value& entity = entities[i];
+						
+						rapidjson::Value& position = entity["position"];
+						
+						myChannel->addEntity(entity["name"].GetString(), Vector3(position["x"].GetDouble(), position["y"].GetDouble(), position["z"].GetDouble()), entity["moveSpeed"].GetDouble());
+					}
+				}
 			}
 		}
 	}
@@ -471,15 +487,7 @@ void OnClientDisconnected(SOCKET clientId, int reason)
 	}
 }
 
-bool GetChannel(int id, Channel* channel)
+Channel* GetChannel(int id)
 {
-	if(exists<int, Channel*>(channels, id))
-	{
-		channel = channels[id];
-		return true;
-	}
-	else
-	{
-		return false;
-	}
+	return channels[id];
 }

@@ -24,6 +24,8 @@ Channel::Channel(int _id, string _name, int _maxClients, bool _autoLeave, bool _
 	indexBlocSize = 20;
 
 	optimizedSynchronization = true;
+
+	entityCounter = 0;
 }
 
 Channel::Channel(void)
@@ -266,4 +268,12 @@ void Channel::SendUsers(int clientId)
 	data["users"] = SerializableObject(usersInfos);
 
 	clients[clientId]->Send(data);
+}
+
+Entity* Channel::addEntity(string name, Vector3 position, float moveSpeed)
+{
+	Entity* newEntity = new Entity(entityCounter, id, name, position, moveSpeed);
+	entities[entityCounter] = newEntity;
+	entityCounter++;
+	return newEntity;
 }

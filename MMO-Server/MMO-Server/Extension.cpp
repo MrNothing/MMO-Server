@@ -9,9 +9,15 @@ void Start()
 	//Do something here...
 }
 
+void showWhoISee(int entity, SerializableObject params)
+{
+	cout<<"I see this entity: "<<entity<<endl;
+}
+
 void Update()
 {
 	//Do something here...
+	GetChannel(2)->getEntities()[0]->doSomethingWithAllVisibleEntities(showWhoISee, SerializableObject(""));
 }
 
 void onCustomMessageRecieved(Client client, SerializableObject data)
